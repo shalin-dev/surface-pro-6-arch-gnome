@@ -1,38 +1,52 @@
-# Surface Pro 6 Linux Setup
+# Surface Pro 6 Linux Setup - GNOME Edition
 
-Comprehensive setup scripts and configuration files for running Linux on Microsoft Surface Pro 6 devices. This repository provides automated installation, optimization guides, and essential configurations to transform your Surface Pro 6 into a fully functional Linux workstation with proper touchscreen, stylus, and tablet mode support.
+Comprehensive setup scripts and configuration for running **GNOME with tablet optimizations** on Microsoft Surface Pro 6. Transform your Surface into a touch-first Linux tablet with iPad-like gestures, dock, and interface.
 
 ## Overview
 
-The Microsoft Surface Pro 6 is a capable 2-in-1 device that can run Linux with proper hardware support through the [linux-surface](https://github.com/linux-surface/linux-surface) project. This repository streamlines the setup process with automated scripts, tested configurations, and comprehensive documentation.
+This repository provides automated installation and configuration to make your Surface Pro 6 a fully functional Linux tablet with GNOME desktop environment.
 
-**Target Distribution:** EndeavourOS / Arch Linux (can be adapted for other distributions)
+**Target Distribution:** EndeavourOS / Arch Linux (adaptable to other distributions)
 
 **Tested Hardware:** Surface Pro 6 (i5-8250U, 8GB RAM)
 
+**Desktop Environment:** GNOME 45+ with tablet extensions
+
 ## Features
 
-- **Automated Phase 1 Setup**: One-command installation of essential Surface hardware support
+- **Automated 2-Phase Setup**: Hardware support → Tablet interface
 - **Touchscreen & Stylus**: Full IPTSD integration with pressure sensitivity
+- **iPad-Like Gestures**: 3-finger/4-finger multitouch gestures via Touchégg
+- **Dash-to-Dock**: iOS/iPadOS-style bottom dock
+- **Touch Controls Extension**: Quick touchscreen toggle from top bar
 - **Power Management**: Optimized battery life with auto-cpufreq
-- **Thermal Management**: Proper cooling with thermald
-- **Screen Rotation**: Automatic orientation detection
-- **Tablet Mode**: KDE Plasma optimizations for touch input
+- **Virtual Keyboard**: Maliit keyboard for Wayland
+- **Tablet Apps**: Xournal++ for notes, Foliate for reading
 
 ## Quick Start
 
 ### Prerequisites
 
 - EndeavourOS or Arch-based distribution installed
+- GNOME desktop environment
 - Internet connection
 - Sudo privileges
+
+### ⚠️ Safety First
+
+**Before running Phase 1:**
+- Create a system backup/snapshot (Timeshift recommended)
+- Know how to access TTY: `Ctrl+Alt+F2`
+- Read the recovery guide: [docs/emergency-recovery.md](docs/emergency-recovery.md)
+
+**Your old kernel will remain bootable** - if graphics break, press `Shift` during boot to select it from GRUB.
 
 ### Phase 1: Essential Setup (Automated)
 
 ```bash
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/surface-pro-6-linux-setup.git
-cd surface-pro-6-linux-setup
+git clone https://github.com/YOUR_USERNAME/surface-pro-6-arch-gnome.git
+cd surface-pro-6-arch-gnome
 
 # Run Phase 1 installation
 ./scripts/phase1-essential-setup.sh
@@ -42,16 +56,20 @@ cd surface-pro-6-linux-setup
 
 1. linux-surface kernel and headers
 2. IPTSD (Intel Precise Touch & Stylus Daemon)
-3. Wacom and stylus drivers (libwacom, xf86-input-wacom)
+3. Wacom and stylus drivers
 4. Thermal management (thermald)
 5. Power management (auto-cpufreq, powertop)
-6. Bluetooth support (bluez, bluez-utils)
-7. Intel graphics drivers (mesa, vulkan-intel, intel-media-driver)
+6. Bluetooth support
+7. Intel graphics drivers
 8. Screen rotation support (iio-sensor-proxy)
+9. Initramfs rebuild for new kernel
+10. GRUB configuration update with backup
 
-### Post-Installation
+**⚠️ REBOOT REQUIRED** after Phase 1 completes!
 
-After running Phase 1 and rebooting, you must **calibrate IPTSD** for optimal touch and stylus performance:
+### Post-Phase-1: Calibrate IPTSD
+
+After rebooting into the linux-surface kernel, **you must calibrate IPTSD** for optimal touch and stylus performance:
 
 ```bash
 # Stop IPTSD service
@@ -71,24 +89,62 @@ sudo systemctl enable iptsd@$(sudo iptsd-find-hidraw).service
 sudo systemctl start iptsd@$(sudo iptsd-find-hidraw).service
 ```
 
+### Phase 2: GNOME Tablet Interface (Automated)
+
+Transform your Surface into a premium tablet experience!
+
+```bash
+# Run Phase 2 installation (after completing Phase 1 + reboot)
+./scripts/phase2-gnome-tablet.sh
+```
+
+**What Phase 2 Includes:**
+
+1. **GNOME Extensions**: Dash-to-Dock, GSConnect, tablet controls
+2. **iPad-Like Gestures**: Touchégg with optimized response times
+3. **Touch-Friendly Themes**: Materia theme, Papirus icons, larger fonts
+4. **Virtual Keyboard**: Maliit keyboard with auto-show
+5. **Tablet Apps**: Xournal++, Foliate, Drawing, GNOME apps
+6. **Visual Polish**: Touch-optimized scaling, spacing, and sizing
+
+**⚠️ LOG OUT REQUIRED** after extension installation (step 2)
+
+The script will prompt you to log out after installing extensions. After logging back in, run the script again to complete remaining steps.
+
+**Gesture Controls (After Phase 2):**
+
+- **3-finger swipe up**: Show Activities Overview
+- **3-finger swipe down**: Minimize window
+- **3-finger swipe left/right**: Switch workspaces
+- **4-finger pinch in**: Show desktop
+- **2-finger tap**: Right-click
+- **2-finger pinch**: Zoom in/out (in supporting apps)
+
+**Browser-Specific:**
+- **2-finger swipe left/right**: Back/forward navigation
+
 ## Repository Structure
 
 ```
-surface-pro-6-linux-setup/
+surface-pro-6-arch-gnome/
 ├── scripts/
-│   ├── phase1-essential-setup.sh    # Automated core installation
-│   └── phase2-customization.sh      # Advanced features (coming soon)
-├── configs/
-│   ├── iptsd/                       # Touch and stylus configurations
-│   ├── auto-cpufreq/                # Power management profiles
-│   ├── kde/                         # KDE Plasma tablet mode scripts
-│   └── ollama/                      # AI assistant optimization
+│   ├── phase1-essential-setup.sh    # Hardware support installation
+│   ├── phase2-gnome-tablet.sh       # GNOME tablet interface setup
+│   ├── enable-tablet-controls.sh    # Enable custom extension
+│   └── install-wallpapers.sh        # Optional wallpaper install
 ├── docs/
-│   ├── troubleshooting.md           # Common issues and solutions
-│   ├── battery-optimization.md      # Power saving techniques
-│   └── contributing.md              # How to contribute
-├── README.md                        # This file
-└── LICENSE                          # MIT License
+│   ├── dash-to-panel-guide.md       # Dock customization guide
+│   ├── tablet-controls-extension.md # Custom extension docs
+│   ├── tablet-ui-customization.md   # Advanced GNOME theming
+│   ├── power-management.md          # Battery optimization
+│   ├── stylus-writing-guide.md      # Stylus app recommendations
+│   ├── pdf-annotation-workflow.md   # PDF workflow with stylus
+│   ├── emergency-recovery.md        # Recovery procedures
+│   └── troubleshooting.md           # Common issues and solutions
+├── QUICK-START.md                   # Quick setup validation
+├── TABLET-CONTROLS-SETUP.md         # Extension setup guide
+├── TEST-GESTURES.md                 # Gesture testing checklist
+└── README.md                        # This file
 ```
 
 ## Hardware Support Status
@@ -106,7 +162,7 @@ surface-pro-6-linux-setup/
 | Battery | ✅ Working | Accurate reporting |
 | Cameras | ❌ Not Working | Intel ISP driver limitations |
 | Hibernate | ⚠️ Manual Setup | Requires swap configuration |
-| Sleep/Suspend | ⚠️ Battery Drain | Use hibernate instead (~30% overnight drain) |
+| Sleep/Suspend | ⚠️ Battery Drain | Use hibernate instead |
 
 ## Performance Expectations
 
@@ -116,21 +172,31 @@ With proper optimization:
 - **Stylus Latency**: <20ms (comparable to Windows)
 - **Palm Rejection**: >95% effectiveness after IPTSD calibration
 - **Boot Time**: ~15-20 seconds with SSD
+- **Gesture Response**: <100ms (iPad-like smoothness)
 
-## Configuration Examples
+## GNOME Extensions Included
 
-Sample configurations are provided in the `configs/` directory:
-
-- **IPTSD Calibration**: Optimized palm rejection and stylus settings
-- **Power Profiles**: Battery saver, balanced, and performance modes
-- **KDE Tablet Mode**: Auto-switching between laptop and tablet layouts
-- **Ollama AI**: Memory-optimized settings for 8GB RAM
+- **Dash-to-Dock**: iPad-style bottom dock with transparency
+- **GSConnect**: Android/iOS integration (SMS, notifications, file sharing)
+- **Surface Tablet Controls**: Custom extension for touchscreen toggle
+- **Screen Rotate**: Manual rotation controls
+- **Hibernate Status**: Hibernate/suspend status in top bar
 
 ## Troubleshooting
+
+**🚨 Graphics broken / Can't login after Phase 1:**
+See emergency recovery guide: [docs/emergency-recovery.md](docs/emergency-recovery.md)
+- Press `Ctrl+Alt+F2` for TTY access
+- Boot old kernel from GRUB menu (press `Shift` during boot)
 
 **Touchscreen not working after boot:**
 ```bash
 sudo systemctl restart iptsd@*.service
+```
+
+**Gestures not working:**
+```bash
+sudo systemctl restart touchegg
 ```
 
 **WiFi not connecting:**
@@ -139,48 +205,70 @@ sudo pacman -S linux-firmware-marvell
 sudo reboot
 ```
 
-**Battery draining during sleep:**
-Configure hibernate instead of suspend (see docs/battery-optimization.md)
+**Extension not showing after Phase 2:**
+```bash
+# Log out and back in
+# Or check extension status:
+gnome-extensions list --enabled
+gnome-extensions info dash-to-dock@micxgx.gmail.com
+```
+
+**Virtual keyboard not appearing:**
+- Make sure you're on Wayland session (not X11)
+- Check if Maliit is running: `ps aux | grep maliit`
+- Restart: `pkill maliit-server && maliit-server &`
 
 For detailed troubleshooting, see [docs/troubleshooting.md](docs/troubleshooting.md)
+
+## Configuration Examples
+
+Sample configurations are provided in the `docs/` directory:
+
+- **IPTSD Calibration**: Palm rejection and stylus optimization
+- **Power Profiles**: Battery saver, balanced, and performance modes
+- **Gesture Customization**: Adding/modifying Touchégg gestures
+- **Extension Configuration**: Dash-to-Dock, GSConnect, and more
 
 ## Roadmap
 
 - [x] Phase 1: Essential hardware support automation
-- [ ] Phase 2: Advanced customization script
-- [ ] IPTSD config templates for different use cases
-- [ ] KDE tablet mode automation scripts
-- [ ] Ollama integration for offline AI
-- [ ] Comprehensive troubleshooting guide
-- [ ] Battery optimization profiles
+- [x] Phase 2: GNOME tablet interface with gestures
+- [x] Custom tablet controls extension
+- [x] Touch-optimized theme and scaling
+- [x] Virtual keyboard integration (Maliit)
+- [x] Comprehensive documentation
+- [ ] Hibernate/suspend optimization guide
+- [ ] Advanced gesture customization tool
+- [ ] One-click backup/restore script
 - [ ] Fedora/Ubuntu adaptation guide
 
 ## Contributing
 
-Contributions are welcome! This project benefits from real-world testing and improvements from the community.
+Contributions are welcome! This project benefits from real-world testing and improvements.
 
 **Ways to contribute:**
 - Test scripts on your Surface Pro 6 and report issues
-- Share your IPTSD calibration values
-- Document hardware quirks or workarounds
+- Share your IPTSD calibration improvements
+- Document GNOME extension configurations
 - Submit configuration improvements
 - Improve documentation
 
-See [docs/contributing.md](docs/contributing.md) for detailed guidelines.
-
 ## Acknowledgments
 
-This project builds upon the excellent work of:
+This project builds upon:
 
 - [linux-surface](https://github.com/linux-surface/linux-surface) - Surface hardware support
 - [IPTSD](https://github.com/linux-surface/iptsd) - Touch and stylus processing
+- [Touchégg](https://github.com/JoseExposito/touchegg) - Gesture recognition
 - [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpufreq) - Power management
+- [Dash-to-Dock](https://github.com/micheleg/dash-to-dock) - GNOME dock extension
 
 ## Resources
 
 - **linux-surface Wiki**: https://github.com/linux-surface/linux-surface/wiki
 - **Community Support**: https://matrix.to/#/#linux-surface:matrix.org
 - **r/SurfaceLinux**: https://reddit.com/r/SurfaceLinux
+- **GNOME Extensions**: https://extensions.gnome.org
 - **EndeavourOS Forums**: https://forum.endeavouros.com/
 
 ## License
@@ -193,4 +281,4 @@ This software is provided as-is without warranty. Always backup your data before
 
 ---
 
-**Status**: Active Development | **Last Updated**: 2025-10-03 | **Maintainer**: Shalin
+**Status**: Active Development | **Last Updated**: 2025-11-12 | **Maintainer**: Your Name

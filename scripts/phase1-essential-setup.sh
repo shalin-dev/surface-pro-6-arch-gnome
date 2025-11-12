@@ -61,6 +61,8 @@ echo "  6. Install power management (auto-cpufreq)"
 echo "  7. Install Bluetooth support"
 echo "  8. Install Intel graphics drivers"
 echo "  9. Install screen rotation support"
+echo "  10. Rebuild initramfs for new kernel"
+echo "  11. Update GRUB configuration"
 echo ""
 read -p "Continue? (y/n) " -n 1 -r
 echo
@@ -71,6 +73,44 @@ fi
 
 echo ""
 print_info "Starting installation..."
+echo ""
+
+# Pre-flight safety checks
+print_info "Running pre-flight safety checks..."
+
+# Check if GRUB is installed
+if ! command -v grub-mkconfig &> /dev/null; then
+    print_error "GRUB not found. This script requires GRUB bootloader."
+    exit 1
+fi
+
+# Verify current kernel exists
+CURRENT_KERNEL=$(uname -r)
+if [ ! -f "/boot/vmlinuz-${CURRENT_KERNEL}" ]; then
+    print_warning "Current kernel not found in /boot. Proceeding with caution..."
+else
+    print_status "Current kernel verified: $CURRENT_KERNEL"
+fi
+
+# Check if mkinitcpio exists
+if ! command -v mkinitcpio &> /dev/null; then
+    print_error "mkinitcpio not found. Cannot rebuild initramfs."
+    exit 1
+fi
+
+# Verify /boot has enough space (need ~200MB)
+BOOT_SPACE=$(df -BM /boot | tail -1 | awk '{print $4}' | sed 's/M//')
+if [ "$BOOT_SPACE" -lt 200 ]; then
+    print_warning "/boot has only ${BOOT_SPACE}MB free. Recommend 200MB+"
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_warning "Installation cancelled."
+        exit 0
+    fi
+fi
+
+print_status "Pre-flight checks passed"
 echo ""
 
 # Step 1: Add linux-surface repository
@@ -96,28 +136,28 @@ sudo pacman -Sy
 echo ""
 
 # Step 2: Install linux-surface kernel
-print_info "Step 2/9: Installing linux-surface kernel and headers..."
+print_info "Step 2/11: Installing linux-surface kernel and headers..."
 sudo pacman -S --needed --noconfirm linux-surface linux-surface-headers
 print_status "linux-surface kernel installed"
 
 echo ""
 
 # Step 3: Install IPTSD
-print_info "Step 3/9: Installing IPTSD (touchscreen/stylus support)..."
+print_info "Step 3/11: Installing IPTSD (touchscreen/stylus support)..."
 sudo pacman -S --needed --noconfirm iptsd linux-firmware-marvell
 print_status "IPTSD installed"
 
 echo ""
 
 # Step 4: Install Wacom/stylus support
-print_info "Step 4/9: Installing Wacom and stylus drivers..."
+print_info "Step 4/11: Installing Wacom and stylus drivers..."
 sudo pacman -S --needed --noconfirm libwacom xf86-input-wacom
 print_status "Wacom drivers installed"
 
 echo ""
 
 # Step 5: Install thermal management
-print_info "Step 5/9: Installing thermal management (thermald)..."
+print_info "Step 5/11: Installing thermal management (thermald)..."
 sudo pacman -S --needed --noconfirm thermald
 sudo systemctl enable thermald
 print_status "thermald installed and enabled"
@@ -125,7 +165,7 @@ print_status "thermald installed and enabled"
 echo ""
 
 # Step 6: Install power management - auto-cpufreq
-print_info "Step 6/9: Installing power management (auto-cpufreq)..."
+print_info "Step 6/11: Installing power management (auto-cpufreq)..."
 
 # Check if TLP is installed and warn
 if pacman -Qq tlp &> /dev/null; then
@@ -165,7 +205,7 @@ print_status "powertop installed"
 echo ""
 
 # Step 7: Install Bluetooth
-print_info "Step 7/9: Installing Bluetooth support..."
+print_info "Step 7/11: Installing Bluetooth support..."
 sudo pacman -S --needed --noconfirm bluez bluez-utils
 sudo systemctl enable bluetooth
 print_status "Bluetooth installed and enabled"
@@ -173,21 +213,59 @@ print_status "Bluetooth installed and enabled"
 echo ""
 
 # Step 8: Install Intel graphics drivers
-print_info "Step 8/9: Installing Intel graphics drivers..."
+print_info "Step 8/11: Installing Intel graphics drivers..."
 sudo pacman -S --needed --noconfirm mesa vulkan-intel intel-media-driver
 print_status "Intel graphics drivers installed"
 
 echo ""
 
 # Step 9: Install screen rotation support
-print_info "Step 9/9: Installing screen rotation support..."
+print_info "Step 9/11: Installing screen rotation support..."
 sudo pacman -S --needed --noconfirm iio-sensor-proxy
 print_status "iio-sensor-proxy installed"
+
+echo ""
+
+# Step 10: Rebuild initramfs for new kernel
+print_info "Step 10/11: Rebuilding initramfs for linux-surface kernel..."
+sudo mkinitcpio -P
+print_status "Initramfs rebuilt"
+
+echo ""
+
+# Step 11: Update GRUB configuration
+print_info "Step 11/11: Updating GRUB configuration..."
+
+# Backup existing GRUB config
+sudo cp /boot/grub/grub.cfg /boot/grub/grub.cfg.backup
+
+# Regenerate GRUB config
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+print_status "GRUB configuration updated"
+
+# Show available kernels
+print_info "Available kernels in GRUB:"
+grep -oP "(?<=menuentry ')[^']*" /boot/grub/grub.cfg | head -5
 
 echo ""
 echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}Phase 1 Installation Complete!${NC}"
 echo -e "${BLUE}========================================${NC}"
+echo ""
+
+print_warning "IMPORTANT: Recovery Information"
+echo ""
+echo "  Your old kernel is still available as a backup!"
+echo "  If graphics break after reboot:"
+echo ""
+echo "  1. Press Shift/Esc during boot to show GRUB menu"
+echo "  2. Select your old kernel (not linux-surface)"
+echo "  3. Boot into it and run: sudo pacman -R linux-surface"
+echo ""
+echo "  OR access TTY with Ctrl+Alt+F2 if screen is black"
+echo "  Recovery guide: docs/emergency-recovery.md"
+echo ""
+echo -e "${CYAN}──────────────────────────────────────${NC}"
 echo ""
 
 print_warning "IMPORTANT NEXT STEPS:"
