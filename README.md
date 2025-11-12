@@ -160,7 +160,8 @@ surface-pro-6-arch-gnome/
 | Bluetooth | ✅ Working | Fully functional |
 | Screen Rotation | ✅ Working | Automatic with iio-sensor-proxy |
 | Battery | ✅ Working | Accurate reporting |
-| Cameras | ❌ Not Working | Intel ISP driver limitations |
+| Cameras | ❌ Not Working | Intel IPU3 - detected but unusable, no Linux driver support |
+| Fingerprint | ❌ Not Available | No built-in sensor (Type Cover accessory only) |
 | Hibernate | ⚠️ Manual Setup | Requires swap configuration |
 | Sleep/Suspend | ⚠️ Battery Drain | Use hibernate instead |
 
